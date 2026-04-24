@@ -22,46 +22,39 @@ class SeanceController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'numero_debut_semaine' => 'required|integer',
-            'numero_fin_semaine' => 'required|integer',
-            'annee' => 'required|integer',
-            'type' => 'required|string',
-            'cour_id' => 'required|exists:cours,id',
-            'professeur_id' => 'required|exists:professeurs,id',
-            'salle_id' => 'required|exists:salles,id',
-            'creneau_horaire_id' => 'required|exists:creneau_horaires,id',
-        ]);
+        try {
+            // Création directe pour tester
+            $seance = Seance::create($request->all());
+            return response()->json([
+                'message' => 'OK', 
+                'data' => [
+                    'id' => $seance->id,
+                    'message' => 'Séance créée'
+                ]
+            ], 201);
 
-        $seance = Seance::create($validated);
-        return new SeanceResource($seance->load(['cours.niveau', 'professeur', 'salle', 'creneauHoraire']));
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
-    public function show(Seance $seance)
-    {
-        return new SeanceResource($seance->load(['cours.niveau', 'professeur', 'salle', 'creneauHoraire']));
-    }
+    public function show(Seance $seance) { return $seance; }
 
     public function update(Request $request, Seance $seance)
     {
-        $validated = $request->validate([
-            'numero_debut_semaine' => 'sometimes|required|integer',
-            'numero_fin_semaine' => 'sometimes|required|integer',
-            'annee' => 'sometimes|required|integer',
-            'type' => 'sometimes|required|string',
-            'cour_id' => 'sometimes|required|exists:cours,id',
-            'professeur_id' => 'sometimes|required|exists:professeurs,id',
-            'salle_id' => 'sometimes|required|exists:salles,id',
-            'creneau_horaire_id' => 'sometimes|required|exists:creneau_horaires,id',
-        ]);
-
-        $seance->update($validated);
-        return new SeanceResource($seance->load(['cours.niveau', 'professeur', 'salle', 'creneauHoraire']));
+        try {
+            $seance->update($request->all());
+            return response()->json(['message' => 'OK']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
     public function destroy(Seance $seance)
     {
         $seance->delete();
-        return response()->noContent();
+        return response()->json(['message' => 'DELETED']);
     }
+
 }
+

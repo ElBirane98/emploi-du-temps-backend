@@ -12,27 +12,37 @@ class AuthController extends Controller
 {
     public function register(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
+        try {
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|string|email|max:255|unique:users',
+                'password' => 'required|string|min:8|confirmed',
+            ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => 'visiteur', // Rôle par défaut
-        ]);
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'role' => 'visiteur',
+            ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+            $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json([
-            'token' => $token,
-            'token_type' => 'Bearer',
-            'user' => $user
-        ]);
+            return response()->json([
+                'token' => $token,
+                'token_type' => 'Bearer',
+                'user' => $user
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Registration Error: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Erreur lors de la création du compte.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+
     }
+
 
     public function login(Request $request)
     {
